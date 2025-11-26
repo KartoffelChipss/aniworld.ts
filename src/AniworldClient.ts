@@ -22,7 +22,7 @@ export class AniworldClient {
     private readonly hostUrl: string;
     private readonly site: string;
     private readonly debugLogger?: Logger;
-    private readonly userAgent: string;
+    private userAgent: string;
 
     /**
      * Creates an instance of AniworldClient.
@@ -38,6 +38,22 @@ export class AniworldClient {
         this.site = mergedOptions.site!;
         this.debugLogger = mergedOptions.debugLogger;
         this.userAgent = mergedOptions.userAgent!;
+    }
+
+    /**
+     * Gets the current user agent string used for HTTP requests.
+     * @returns The user agent string.
+     */
+    public getUserAgent(): string {
+        return this.userAgent;
+    }
+
+    /**
+     * Sets the user agent string for HTTP requests.
+     * @param userAgent The user agent string to set.
+     */
+    public setUserAgent(userAgent: string) {
+        this.userAgent = userAgent;
     }
 
     /**
