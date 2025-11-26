@@ -1,4 +1,10 @@
-import { Episode, ExtractedSeason } from '../types/Season';
+import {
+    Episode,
+    ExtractedSeason,
+    isLanguage,
+    Language,
+    Languages,
+} from '../types/Season';
 import { Extractor } from './Extractor';
 
 export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
@@ -24,10 +30,38 @@ export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
                 const originalTitle =
                     node.find('td:nth-child(2) a span').text().trim() || null;
 
+                const languages = node
+                    .find('td:nth-child(4) img')
+                    .map((_, langEl) => $(langEl).attr('src') || null)
+                    .map((_, src) => {
+                        // /public/img/japanese-german.svg -> japanese audio & german subtitles
+                        // /public/img/german.svg -> german audio & no subtitles
+                        if (src === null) return null;
+                        const parts = src.split('/');
+                        const filename = parts[parts.length - 1]; // "german.svg" or "japanese-german.svg"
+                        const nameWithoutExt = filename.replace(/\.[^.]+$/, ''); // remove .svg enging
+                        const [audioPart, subtitlePartRaw] =
+                            nameWithoutExt.split('-');
+                        const subtitlePart = subtitlePartRaw || null;
+                        if (
+                            !isLanguage(audioPart) ||
+                            (subtitlePart !== null && !isLanguage(subtitlePart))
+                        ) {
+                            return null;
+                        }
+
+                        return {
+                            audio: audioPart,
+                            subtitle: subtitlePart,
+                        };
+                    })
+                    .get();
+
                 return {
                     episodeNumber,
                     title,
                     originalTitle,
+                    languages,
                 };
             })
             .get();
