@@ -44,6 +44,21 @@ export class AniworldClient {
     }
 
     /**
+     * Returns a default logger that logs to the console.
+     * @returns A Logger instance that logs to the console.
+     */
+    public static getDefaultLogger(): Logger {
+        return {
+            log: (message: string) => {
+                console.log('[AniworldClient LOG]: ' + message);
+            },
+            error: (message: string) => {
+                console.error('[AniworldClient ERROR]: ' + message);
+            },
+        };
+    }
+
+    /**
      * Gets the current user agent string used for HTTP requests.
      * @returns The user agent string.
      */
