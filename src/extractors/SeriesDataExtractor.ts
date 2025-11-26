@@ -1,4 +1,4 @@
-import { ExtractedSeries, Series } from '../types/Series';
+import { ExtractedSeries } from '../types/Series';
 import { Extractor } from './Extractor';
 
 export class SeriesDataExtractor extends Extractor<ExtractedSeries | null> {

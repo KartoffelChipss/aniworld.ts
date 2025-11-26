@@ -24,9 +24,8 @@ export abstract class Extractor<T> {
 
     /**
      * Extracts data from the given title's html content.
-     * @param title The title to extract data from.
      */
-    public abstract extract(title: string): Promise<T>;
+    public abstract extract(): Promise<T>;
 
     /**
      * Gets the logger instance.

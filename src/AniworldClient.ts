@@ -3,6 +3,8 @@ import { Logger } from './types/Logger';
 import { fetchHtml } from './utils/requestHelpers';
 import { SeriesDataExtractor } from './extractors/SeriesDataExtractor';
 import { Series } from './types/Series';
+import { SeasonExtractor } from './extractors/SeasonExtractor';
+import { Season } from './types/Season';
 
 interface AniworldClientOptions {
     hostUrl: string;
@@ -91,7 +93,6 @@ export class AniworldClient {
     public async getSeries(title: string): Promise<Series | null> {
         const url = `/${this.site}/stream/${encodeURIComponent(title)}`;
         const cheerioRoot = await this.getHtmlRoot(url);
-
         if (cheerioRoot === null) return null;
 
         const extractor = new SeriesDataExtractor(
@@ -101,11 +102,46 @@ export class AniworldClient {
         );
 
         const extractedSeries = await extractor.extract();
-
         if (extractedSeries === null) return null;
 
         return {
             ...extractedSeries,
+            url: new URL(url, this.hostUrl).toString(),
+        };
+    }
+
+    /**
+     * Fetches episodes for a specific season of a series.
+     * @param title The title or slug of the series.
+     * @param seasonNumber The season number to fetch episodes for. 0 indicates movies.
+     * @returns A Promise that resolves to the season information or null if not found.
+     */
+    public async getEpisodes(
+        title: string,
+        seasonNumber: number
+    ): Promise<Season | null> {
+        if (seasonNumber < 0) {
+            throw new Error('Season number must be greater than 0.');
+        }
+
+        const url = `/${this.site}/stream/${encodeURIComponent(
+            title
+        )}/staffel-${seasonNumber}`;
+        const cheerioRoot = await this.getHtmlRoot(url);
+        if (cheerioRoot === null) return null;
+
+        const extractor = new SeasonExtractor(
+            this.hostUrl,
+            async () => cheerioRoot,
+            this.debugLogger
+        );
+
+        const extractedSeason = await extractor.extract();
+        if (extractedSeason === null) return null;
+
+        return {
+            seasonNumber,
+            episodes: extractedSeason,
             url: new URL(url, this.hostUrl).toString(),
         };
     }
