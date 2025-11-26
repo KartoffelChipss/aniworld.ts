@@ -19,14 +19,10 @@ export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
                     node.find('td:first-child a').text().slice(6).trim(),
                     10
                 ); // "Folge X"
-                const title = node
-                    .find('td:nth-child(2) a strong')
-                    .text()
-                    .trim();
-                const originalTitle = node
-                    .find('td:nth-child(2) a span')
-                    .text()
-                    .trim();
+                const title =
+                    node.find('td:nth-child(2) a strong').text().trim() || null;
+                const originalTitle =
+                    node.find('td:nth-child(2) a span').text().trim() || null;
 
                 return {
                     episodeNumber,

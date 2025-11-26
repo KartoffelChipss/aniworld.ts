@@ -145,4 +145,13 @@ export class AniworldClient {
             url: new URL(url, this.hostUrl).toString(),
         };
     }
+
+    /**
+     * Fetches movies for a specific series.
+     * @param title The title or slug of the series.
+     * @returns A Promise that resolves to the season information for movies or null if not found.
+     */
+    public async getMovies(title: string): Promise<Season | null> {
+        return this.getEpisodes(title, 0);
+    }
 }

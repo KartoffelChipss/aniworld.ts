@@ -2,9 +2,9 @@ export interface Episode {
     /** The episode number. */
     episodeNumber: number;
     /** The title of the episode. */
-    title: string;
+    title: string | null;
     /** The original title of the episode. */
-    originalTitle: string;
+    originalTitle: string | null;
 }
 
 export type ExtractedSeason = Episode[];
