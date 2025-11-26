@@ -4,30 +4,60 @@ import { fetchHtml } from './utils/requestHelpers';
 import { SeriesDataExtractor } from './extractors/SeriesDataExtractor';
 import { Series } from './types/Series';
 
+interface AniworldClientOptions {
+    hostUrl: string;
+    site: string;
+    debugLogger?: Logger;
+    userAgent?: string;
+}
+
+const defaultOptions: Partial<AniworldClientOptions> = {
+    hostUrl: 'https://aniworld.to',
+    site: 'anime',
+    userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+};
+
 export class AniworldClient {
     private readonly hostUrl: string;
     private readonly site: string;
     private readonly debugLogger?: Logger;
+    private readonly userAgent: string;
 
     /**
      * Creates an instance of AniworldClient.
      * @param hostUrl The base URL for the streaming service (e.g., "https://aniworld.to").
      * @param site The specific site or subdomain to target (e.g., "animes").
      * @param debugLogger A logger instance for debugging purposes.
+     * @param userAgent Optional user agent string to use for requests.
      */
-    constructor(hostUrl: string, site: string, debugLogger?: Logger) {
-        this.site = site;
-        this.debugLogger = debugLogger;
-        this.hostUrl = hostUrl;
+    constructor(options?: AniworldClientOptions) {
+        const mergedOptions = { ...defaultOptions, ...options };
+
+        this.hostUrl = mergedOptions.hostUrl!;
+        this.site = mergedOptions.site!;
+        this.debugLogger = mergedOptions.debugLogger;
+        this.userAgent = mergedOptions.userAgent!;
     }
 
+    /**
+     * Fetches and parses the HTML content from the specified path.
+     * @param path The path to fetch HTML from.
+     * @returns A Promise that resolves to a CheerioAPI instance or null if fetching fails.
+     */
     private async getHtmlRoot(
         path: string
     ): Promise<cheerio.CheerioAPI | null> {
         const url = new URL(path, this.hostUrl).toString();
         this.debugLogger?.log(`Fetching HTML from URL: ${url}`);
 
-        const webContent = await fetchHtml(url, {}, this.debugLogger);
+        const webContent = await fetchHtml(
+            url,
+            {
+                'User-Agent': this.userAgent,
+            },
+            this.debugLogger
+        );
 
         if (webContent === null) {
             this.debugLogger?.log(`No content found at URL: ${url}`);
