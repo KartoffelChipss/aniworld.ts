@@ -1,0 +1,19 @@
+{
+    "out": "docs",
+    "name": "aniworld.ts",
+    "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "hideGenerator": true,
+    "plugin": ["typedoc-github-theme"],
+    "theme": "typedoc-github-theme",
+    "readme": "typedoc-readme.md",
+    "navigationLinks": {
+        "Discord": "https://strassburger.org/discord",
+        "NPM": "https://www.npmjs.com/package/aniworld.ts",
+        "GitHub": "https://github.com/KartoffelChipss/aniworld.ts"
+    },
+    "disableSources": true,
+    "entryPoints": ["src/index.ts"],
+    "entryPointStrategy": "resolve"
+}
