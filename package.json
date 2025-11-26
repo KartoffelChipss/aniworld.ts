@@ -1,8 +1,9 @@
 {
     "name": "aniworld.ts",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "A TypeScript library for interacting with the Aniworld anime streaming platform or similarly structured services like s.to.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
         "publish": "rm -rf dist && tsc && npm publish",
@@ -15,12 +16,24 @@
         "type": "git",
         "url": "git+https://github.com/KartoffelChipss/aniworld.ts.git"
     },
-    "keywords": [],
+    "keywords": [
+        "aniworld",
+        "s.to",
+        "anime",
+        "typescript",
+        "library",
+        "streaming",
+        "api",
+        "scraper",
+        "downloader",
+        "aniworld.to"
+    ],
     "author": {
         "name": "Jan Straßburger",
         "email": "contact@strassburger.org",
         "url": "https://strassburger.org/"
     },
+    "readme": "README.md",
     "license": "MIT",
     "packageManager": "pnpm@10.15.1",
     "devDependencies": {

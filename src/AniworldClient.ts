@@ -174,7 +174,7 @@ export class AniworldClient {
      * @param seasonNumber The season number to fetch episodes for. 0 indicates movies.
      * @returns A Promise that resolves to the season information or null if not found.
      */
-    public async getEpisodes(
+    public async getSeason(
         title: string,
         seasonNumber: number
     ): Promise<Season | null> {
@@ -210,6 +210,6 @@ export class AniworldClient {
      * @returns A Promise that resolves to the season information for movies or null if not found.
      */
     public async getMovies(title: string): Promise<Season | null> {
-        return this.getEpisodes(title, 0);
+        return this.getSeason(title, 0);
     }
 }
