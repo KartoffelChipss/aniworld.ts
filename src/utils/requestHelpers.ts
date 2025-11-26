@@ -47,3 +47,46 @@ export async function fetchHtml(
     logger?.log(`Successfully fetched URL: ${urlBuilder.toString()}`);
     return html;
 }
+
+/**
+ * Fetches JSON content from the specified URL.
+ * @param url The URL to fetch JSON content from.
+ * @param headers Optional headers to include in the request.
+ * @param logger Optional logger for logging request details.
+ * @returns A Promise that resolves to the fetched JSON content.
+ */
+export async function fetchJson(
+    url: string,
+    headers?: Record<string, string>,
+    logger?: Logger
+): Promise<any> {
+    const urlBuilder = new URL(url);
+
+    const requestHeaders = new Headers({
+        Accept: 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        ...headers,
+    });
+
+    logger?.log(`Fetching JSON from URL: ${urlBuilder.toString()}`);
+
+    const response = await fetch(urlBuilder.toString(), {
+        method: 'GET',
+        headers: requestHeaders,
+    });
+
+    if (!response.ok) {
+        logger?.log(
+            `Failed to fetch URL: ${urlBuilder.toString()} with status: ${response.status} ${response.statusText}`
+        );
+        throw new Error(
+            `Failed to fetch ${urlBuilder.toString()}: ${response.status} ${response.statusText}`
+        );
+    }
+
+    const json = await response.json();
+    logger?.log(`Successfully fetched JSON from URL: ${urlBuilder.toString()}`);
+    return json;
+}

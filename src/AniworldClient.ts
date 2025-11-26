@@ -1,10 +1,11 @@
 import * as cheerio from 'cheerio';
 import { Logger } from './types/Logger';
-import { fetchHtml } from './utils/requestHelpers';
+import { fetchHtml, fetchJson } from './utils/requestHelpers';
 import { SeriesDataExtractor } from './extractors/SeriesDataExtractor';
 import { Series } from './types/Series';
 import { SeasonExtractor } from './extractors/SeasonExtractor';
 import { Season } from './types/Season';
+import { parseSearchResults } from './utils/searchHelpers';
 
 interface AniworldClientOptions {
     hostUrl: string;
@@ -33,7 +34,7 @@ export class AniworldClient {
      * @param debugLogger A logger instance for debugging purposes.
      * @param userAgent Optional user agent string to use for requests.
      */
-    constructor(options?: AniworldClientOptions) {
+    constructor(options?: Partial<AniworldClientOptions>) {
         const mergedOptions = { ...defaultOptions, ...options };
 
         this.hostUrl = mergedOptions.hostUrl!;
@@ -56,6 +57,48 @@ export class AniworldClient {
      */
     public setUserAgent(userAgent: string) {
         this.userAgent = userAgent;
+    }
+
+    /**
+     * Searches for series based on the provided query.
+     * @param query The search query string.
+     * @returns A Promise that resolves to the search results or null if no results found.
+     */
+    public async search(query: string) {
+        const url = `/ajax/seriesSearch?keyword=${encodeURIComponent(query)}`;
+        const fullUrl = new URL(url, this.hostUrl).toString();
+
+        this.debugLogger?.log(
+            `Searching for query: ${query} at URL: ${fullUrl}`
+        );
+
+        const res = await fetchJson(
+            fullUrl,
+            {
+                'User-Agent': this.userAgent,
+            },
+            this.debugLogger
+        );
+        if (res === null) {
+            this.debugLogger?.log(
+                `Invalid search response for query: ${query} at URL: ${fullUrl}`
+            );
+            return null;
+        }
+
+        const parsedResults = parseSearchResults(
+            res,
+            this.hostUrl,
+            this.debugLogger
+        );
+        if (parsedResults === null) {
+            this.debugLogger?.log(
+                `Failed to parse search results for query: ${query} at URL: ${fullUrl}`
+            );
+            return null;
+        }
+
+        return parsedResults;
     }
 
     /**
