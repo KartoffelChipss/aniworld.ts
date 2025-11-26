@@ -1,10 +1,6 @@
-import {
-    Episode,
-    ExtractedSeason,
-    isLanguage,
-    Language,
-    Languages,
-} from '../types/Season';
+import { Hoster, isHoster, normalizeHoster } from '../types/Hoster';
+import { isLanguage } from '../types/Language';
+import { Episode, ExtractedSeason } from '../types/Season';
 import { Extractor } from './Extractor';
 
 export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
@@ -57,11 +53,20 @@ export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
                     })
                     .get();
 
+                const hosters: Hoster[] = node
+                    .find('td:nth-child(3) i')
+                    .map((_, hosterEl) =>
+                        normalizeHoster($(hosterEl).attr('title') || '')
+                    )
+                    .get()
+                    .filter((h) => h !== null && isHoster(h));
+
                 return {
                     episodeNumber,
                     title,
                     originalTitle,
                     languages,
+                    hosters,
                 };
             })
             .get();
