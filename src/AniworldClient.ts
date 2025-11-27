@@ -12,10 +12,15 @@ import NodeCache from 'node-cache';
 import { SearchResponse } from './types/Search';
 
 interface AniworldClientOptions {
+    /** The base URL for the streaming service (e.g., "https://aniworld.to"). */
     hostUrl: string;
+    /** The specific site to target (e.g., "anime"). */
     site: string;
+    /** A logger instance for debugging purposes. */
     debugLogger?: Logger;
+    /** Optional user agent string to use for requests. */
     userAgent?: string;
+    /** Optional cache instance for caching responses. */
     cache?: NodeCache;
 }
 
@@ -26,6 +31,9 @@ const defaultOptions: Partial<AniworldClientOptions> = {
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
 };
 
+/**
+ * Client for interacting with the Aniworld streaming service.
+ */
 export class AniworldClient {
     private readonly hostUrl: string;
     private readonly site: string;
