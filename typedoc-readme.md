@@ -2,7 +2,7 @@ aniworld.ts is a TypeScript library for interacting with the Aniworld anime stre
 
 ## Installation
 
-```
+```bash
 npm i aniworld.ts
 ```
 
@@ -71,3 +71,11 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 Portions of this project are based on code by **culajunge**  
 from https://github.com/culajunge/SerienStreamAPI, used under the MIT License.
+
+## Disclaimer
+
+aniworld.ts is a library for interacting with publicly accessible content on streaming platforms for educational and personal use only. By using this library, you agree to comply with all applicable laws and the terms of service of the websites you access.
+
+The author of this library is not responsible for any misuse, copyright infringement, or illegal activity resulting from its use. You should not use this library to bypass paywalls, access copyrighted content without permission, or violate any applicable laws.
+
+This library provides technical functionality only. The content accessed through it is the responsibility of the website owner, and you use it at your own risk.
