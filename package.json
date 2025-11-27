@@ -1,6 +1,6 @@
 {
     "name": "aniworld.ts",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A TypeScript library for interacting with the Aniworld anime streaming platform or similarly structured services like s.to.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
