@@ -43,10 +43,7 @@ export class AniworldClient {
 
     /**
      * Creates an instance of AniworldClient.
-     * @param hostUrl The base URL for the streaming service (e.g., "https://aniworld.to").
-     * @param site The specific site or subdomain to target (e.g., "animes").
-     * @param debugLogger A logger instance for debugging purposes.
-     * @param userAgent Optional user agent string to use for requests.
+     * @param options Configuration options for the client.
      */
     constructor(options?: Partial<AniworldClientOptions>) {
         const mergedOptions = { ...defaultOptions, ...options };
