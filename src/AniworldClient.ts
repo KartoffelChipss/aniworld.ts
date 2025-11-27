@@ -119,6 +119,16 @@ export class AniworldClient {
     }
 
     /**
+     * Builds a complete URL from the provided segments.
+     * @param segments The URL segments to join.
+     * @returns The complete URL as a string.
+     */
+    private buildUrl(...segments: string[]): string {
+        const path = segments.map(encodeURIComponent).join('/');
+        return new URL(`/${this.site}/stream/${path}`, this.hostUrl).toString();
+    }
+
+    /**
      * Fetches and parses the HTML content from the specified path.
      * @param path The path to fetch HTML from.
      * @returns A Promise that resolves to a CheerioAPI instance or null if fetching fails.
@@ -146,27 +156,48 @@ export class AniworldClient {
     }
 
     /**
+     * Generic helper that fetches a page and runs an extractor.
+     * @param path Relative path, e.g. `/anime/stream/some-title/staffel-1`
+     * @param extractorFactory Factory that receives a getRoot function and returns an Extractor<T>
+     */
+    private async fetchAndExtract<T>(
+        path: string,
+        extractorFactory: (getRoot: () => Promise<cheerio.CheerioAPI>) => {
+            extract: () => Promise<T | null>;
+        }
+    ): Promise<T | null> {
+        const cheerioRoot = await this.getHtmlRoot(path);
+        if (cheerioRoot === null) {
+            this.debugLogger?.log(`No HTML at path: ${path}`);
+            return null;
+        }
+
+        const extractor = extractorFactory(async () => cheerioRoot);
+        const extracted = await extractor.extract();
+        if (extracted === null) {
+            this.debugLogger?.log(`Extractor returned null for path: ${path}`);
+            return null;
+        }
+        return extracted;
+    }
+
+    /**
      * Fetches series information based on the provided title or slug.
      * @param title The title or slug of the series to fetch.
      * @returns A Promise that resolves to the Series information or null if not found.
      */
     public async getSeries(title: string): Promise<Series | null> {
-        const url = `/${this.site}/stream/${encodeURIComponent(title)}`;
-        const cheerioRoot = await this.getHtmlRoot(url);
-        if (cheerioRoot === null) return null;
-
-        const extractor = new SeriesDataExtractor(
-            this.hostUrl,
-            async () => cheerioRoot,
-            this.debugLogger
+        const path = this.buildUrl(title);
+        const extracted = await this.fetchAndExtract(
+            path,
+            (getRoot) =>
+                new SeriesDataExtractor(this.hostUrl, getRoot, this.debugLogger)
         );
-
-        const extractedSeries = await extractor.extract();
-        if (extractedSeries === null) return null;
+        if (extracted === null) return null;
 
         return {
-            ...extractedSeries,
-            url: new URL(url, this.hostUrl).toString(),
+            ...extracted,
+            url: new URL(path, this.hostUrl).toString(),
         };
     }
 
@@ -180,29 +211,21 @@ export class AniworldClient {
         title: string,
         seasonNumber: number
     ): Promise<Season | null> {
-        if (seasonNumber < 0) {
-            throw new Error('Season number must be greater than 0.');
-        }
-
-        const url = `/${this.site}/stream/${encodeURIComponent(
-            title
-        )}/staffel-${seasonNumber}`;
-        const cheerioRoot = await this.getHtmlRoot(url);
-        if (cheerioRoot === null) return null;
-
-        const extractor = new SeasonExtractor(
-            this.hostUrl,
-            async () => cheerioRoot,
-            this.debugLogger
+        const path = this.buildUrl(
+            title,
+            seasonNumber === 0 ? 'filme' : `staffel-${seasonNumber}`
         );
-
-        const extractedSeason = await extractor.extract();
-        if (extractedSeason === null) return null;
+        const extractedEpisodes = await this.fetchAndExtract(
+            path,
+            (getRoot) =>
+                new SeasonExtractor(this.hostUrl, getRoot, this.debugLogger)
+        );
+        if (extractedEpisodes === null) return null;
 
         return {
             seasonNumber,
-            episodes: extractedSeason,
-            url: new URL(url, this.hostUrl).toString(),
+            episodes: extractedEpisodes,
+            url: new URL(path, this.hostUrl).toString(),
         };
     }
 
@@ -227,24 +250,21 @@ export class AniworldClient {
         seasonNumber: number,
         episodeNumber: number
     ): Promise<Episode | null> {
-        const url = `/${this.site}/stream/${encodeURIComponent(
-            title
-        )}/staffel-${seasonNumber}/episode-${episodeNumber}`;
-        const cheerioRoot = await this.getHtmlRoot(url);
-        if (cheerioRoot === null) return null;
-
-        const extractor = new EpisodeExtractor(
-            this.hostUrl,
-            async () => cheerioRoot,
-            this.debugLogger
+        const path = this.buildUrl(
+            title,
+            seasonNumber === 0 ? 'filme' : `staffel-${seasonNumber}`,
+            `episode-${episodeNumber}`
         );
-
-        const extractedEpisode = await extractor.extract();
+        const extractedEpisode = await this.fetchAndExtract(
+            path,
+            (getRoot) =>
+                new EpisodeExtractor(this.hostUrl, getRoot, this.debugLogger)
+        );
         if (extractedEpisode === null) return null;
 
         return {
             ...extractedEpisode,
-            url: new URL(url, this.hostUrl).toString(),
+            url: new URL(path, this.hostUrl).toString(),
         };
     }
 
