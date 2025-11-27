@@ -23,12 +23,13 @@ const aniworld = new AniworldClient({
 
 You can pass an object of options into the client constructor:
 
-| Option        | Description                                        | Examples                                 | Default                                                                                                               |
-| ------------- | -------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `hostUrl`     | The base url of the target service                 | `https://aniworld.to/`, `https://s.to`   | `https://aniworld.to/`                                                                                                |
-| `site`        | The site type to use                               | `anime` for Aniworld or `serie` for s.to | `anime`                                                                                                               |
-| `userAgent`   | The user agent to use when making network requests | `MyApp/1.0`                              | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36` |
-| `debugLogger` | A logger for debugging                             | `AniworldClient.getDefaultLogger()`      | _N/A_                                                                                                                 |
+| Option        | Description                                                                             | Examples                                 | Default                                                                                                               |
+| ------------- | --------------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `hostUrl`     | The base url of the target service                                                      | `https://aniworld.to/`, `https://s.to`   | `https://aniworld.to/`                                                                                                |
+| `site`        | The site type to use                                                                    | `anime` for Aniworld or `serie` for s.to | `anime`                                                                                                               |
+| `userAgent`   | The user agent to use when making network requests                                      | `MyApp/1.0`                              | `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36` |
+| `debugLogger` | A logger for debugging                                                                  | `AniworldClient.getDefaultLogger()`      | _N/A_                                                                                                                 |
+| `cache`       | A [node-cache](https://www.npmjs.com/package/node-cache) instance for caching responses | `new NodeCache({ stdTTL: 3600 })`        | _N/A_                                                                                                                 |
 
 ### Search for a series
 

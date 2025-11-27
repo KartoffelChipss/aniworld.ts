@@ -8,12 +8,15 @@ import { Season } from './types/Season';
 import { parseSearchResults } from './utils/searchHelpers';
 import { EpisodeExtractor } from './extractors/EpisodeExtractor';
 import { Episode } from './types/Episode';
+import NodeCache from 'node-cache';
+import { SearchResponse } from './types/Search';
 
 interface AniworldClientOptions {
     hostUrl: string;
     site: string;
     debugLogger?: Logger;
     userAgent?: string;
+    cache?: NodeCache;
 }
 
 const defaultOptions: Partial<AniworldClientOptions> = {
@@ -27,6 +30,7 @@ export class AniworldClient {
     private readonly hostUrl: string;
     private readonly site: string;
     private readonly debugLogger?: Logger;
+    private readonly cache?: NodeCache;
     private userAgent: string;
 
     /**
@@ -42,6 +46,7 @@ export class AniworldClient {
         this.hostUrl = mergedOptions.hostUrl!;
         this.site = mergedOptions.site!;
         this.debugLogger = mergedOptions.debugLogger;
+        this.cache = mergedOptions.cache;
         this.userAgent = mergedOptions.userAgent!;
     }
 
@@ -77,48 +82,6 @@ export class AniworldClient {
     }
 
     /**
-     * Searches for series based on the provided query.
-     * @param query The search query string.
-     * @returns A Promise that resolves to the search results or null if no results found.
-     */
-    public async search(query: string) {
-        const url = `/ajax/seriesSearch?keyword=${encodeURIComponent(query)}`;
-        const fullUrl = new URL(url, this.hostUrl).toString();
-
-        this.debugLogger?.log(
-            `Searching for query: ${query} at URL: ${fullUrl}`
-        );
-
-        const res = await fetchJson(
-            fullUrl,
-            {
-                'User-Agent': this.userAgent,
-            },
-            this.debugLogger
-        );
-        if (res === null) {
-            this.debugLogger?.log(
-                `Invalid search response for query: ${query} at URL: ${fullUrl}`
-            );
-            return null;
-        }
-
-        const parsedResults = parseSearchResults(
-            res,
-            this.hostUrl,
-            this.debugLogger
-        );
-        if (parsedResults === null) {
-            this.debugLogger?.log(
-                `Failed to parse search results for query: ${query} at URL: ${fullUrl}`
-            );
-            return null;
-        }
-
-        return parsedResults;
-    }
-
-    /**
      * Builds a complete URL from the provided segments.
      * @param segments The URL segments to join.
      * @returns The complete URL as a string.
@@ -126,6 +89,29 @@ export class AniworldClient {
     private buildUrl(...segments: string[]): string {
         const path = segments.map(encodeURIComponent).join('/');
         return new URL(`/${this.site}/stream/${path}`, this.hostUrl).toString();
+    }
+
+    /**
+     * Fetches HTML content with caching support.
+     * @param url The URL to fetch HTML from.
+     * @param fetcher A function that performs the actual fetching of HTML.
+     * @returns A Promise that resolves to the fetched HTML string or null if fetching fails.
+     */
+    private async fetchWithCache(
+        url: string,
+        fetcher: () => Promise<string | null>
+    ): Promise<string | null> {
+        if (this.cache) {
+            const cached = this.cache.get<string>(url);
+            if (cached) {
+                this.debugLogger?.log(`Cache hit for URL: ${url}`);
+                return cached;
+            }
+        }
+
+        const html = await fetcher();
+        if (html && this.cache) this.cache.set(url, html);
+        return html;
     }
 
     /**
@@ -137,22 +123,10 @@ export class AniworldClient {
         path: string
     ): Promise<cheerio.CheerioAPI | null> {
         const url = new URL(path, this.hostUrl).toString();
-        this.debugLogger?.log(`Fetching HTML from URL: ${url}`);
-
-        const webContent = await fetchHtml(
-            url,
-            {
-                'User-Agent': this.userAgent,
-            },
-            this.debugLogger
+        const html = await this.fetchWithCache(url, () =>
+            fetchHtml(url, { 'User-Agent': this.userAgent }, this.debugLogger)
         );
-
-        if (webContent === null) {
-            this.debugLogger?.log(`No content found at URL: ${url}`);
-            return null;
-        }
-
-        return cheerio.load(webContent);
+        return html ? cheerio.load(html) : null;
     }
 
     /**
@@ -279,5 +253,58 @@ export class AniworldClient {
         movieNumber: number
     ): Promise<Episode | null> {
         return this.getEpisode(title, 0, movieNumber);
+    }
+
+    /**
+     * Searches for series based on the provided query.
+     * @param query The search query string.
+     * @returns A Promise that resolves to the search results or null if no results found.
+     */
+    public async search(query: string): Promise<SearchResponse | null> {
+        if (query.trim().length === 0) {
+            this.debugLogger?.log('Empty search query provided.');
+            return null;
+        }
+
+        if (this.cache && this.cache.has(`search:${query}`)) {
+            this.debugLogger?.log(`Cache hit for search query: ${query}`);
+            return this.cache.get<SearchResponse>(`search:${query}`)!;
+        }
+
+        const url = `/ajax/seriesSearch?keyword=${encodeURIComponent(query)}`;
+        const fullUrl = new URL(url, this.hostUrl).toString();
+
+        this.debugLogger?.log(
+            `Searching for query: ${query} at URL: ${fullUrl}`
+        );
+
+        const res = await fetchJson(
+            fullUrl,
+            {
+                'User-Agent': this.userAgent,
+            },
+            this.debugLogger
+        );
+        if (res === null) {
+            this.debugLogger?.log(
+                `Invalid search response for query: ${query} at URL: ${fullUrl}`
+            );
+            return null;
+        }
+
+        const parsedResults = parseSearchResults(
+            res,
+            this.hostUrl,
+            this.debugLogger
+        );
+        if (parsedResults === null) {
+            this.debugLogger?.log(
+                `Failed to parse search results for query: ${query} at URL: ${fullUrl}`
+            );
+            return null;
+        }
+
+        if (this.cache) this.cache.set(`search:${query}`, parsedResults);
+        return parsedResults;
     }
 }
