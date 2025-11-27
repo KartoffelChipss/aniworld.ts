@@ -1,6 +1,9 @@
 export interface ExtractedSeries {
     title: string;
     description: string | null;
+    cover: string | null;
+    banner: string | null;
+    /** @deprecated Use cover instead */
     bannerUrl: string;
     startYear: number;
     endYear: number | null;

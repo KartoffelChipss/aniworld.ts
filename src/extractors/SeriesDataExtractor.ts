@@ -21,11 +21,28 @@ export class SeriesDataExtractor extends Extractor<ExtractedSeries | null> {
             root.find('div#stream ul:first li:nth-child(2) a').text() ===
             'Filme';
 
+        const coverUrl = new URL(
+            (root.find('div.seriesCoverBox img').attr('data-src') || '').trim(),
+            this.getHostUrl()
+        ).toString();
+
+        const bannerStyle =
+            root
+                .find('section.SeriesSection div.backdrop')
+                .attr('style')
+                ?.trim() || '';
+        const bannerUrlMatch = bannerStyle.match(/url\(['"]?(.*?)['"]?\)/);
+        const bannerUrl = bannerUrlMatch
+            ? new URL(bannerUrlMatch[1], this.getHostUrl()).toString()
+            : null;
+
         return {
             title: root.find('div.series-title h1').text().trim(),
             description:
                 root.find('p.seri_des').attr('data-full-description') || null,
-            bannerUrl: `${this.getHostUrl()}/${(root.find('div.seriesCoverBox img').attr('data-src') || '').trim()}`,
+            cover: coverUrl,
+            banner: bannerUrl,
+            bannerUrl: coverUrl,
             startYear: parseInt(
                 root.find("span[itemprop='startDate'] a").text().trim(),
                 10
