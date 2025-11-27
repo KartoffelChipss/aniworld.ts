@@ -6,6 +6,8 @@ import { Series } from './types/Series';
 import { SeasonExtractor } from './extractors/SeasonExtractor';
 import { Season } from './types/Season';
 import { parseSearchResults } from './utils/searchHelpers';
+import { EpisodeExtractor } from './extractors/EpisodeExtractor';
+import { Episode } from './types/Episode';
 
 interface AniworldClientOptions {
     hostUrl: string;
@@ -211,5 +213,51 @@ export class AniworldClient {
      */
     public async getMovies(title: string): Promise<Season | null> {
         return this.getSeason(title, 0);
+    }
+
+    /**
+     * Fetches a specific episode from a series and season.
+     * @param title The title or slug of the series.
+     * @param seasonNumber The season number of the episode.
+     * @param episodeNumber The episode number to fetch. (Typically starts from 1)
+     * @returns A Promise that resolves to the episode information or null if not found.
+     */
+    public async getEpisode(
+        title: string,
+        seasonNumber: number,
+        episodeNumber: number
+    ): Promise<Episode | null> {
+        const url = `/${this.site}/stream/${encodeURIComponent(
+            title
+        )}/staffel-${seasonNumber}/episode-${episodeNumber}`;
+        const cheerioRoot = await this.getHtmlRoot(url);
+        if (cheerioRoot === null) return null;
+
+        const extractor = new EpisodeExtractor(
+            this.hostUrl,
+            async () => cheerioRoot,
+            this.debugLogger
+        );
+
+        const extractedEpisode = await extractor.extract();
+        if (extractedEpisode === null) return null;
+
+        return {
+            ...extractedEpisode,
+            url: new URL(url, this.hostUrl).toString(),
+        };
+    }
+
+    /**
+     * Fetches a specific movie from a series.
+     * @param title The title or slug of the series.
+     * @param movieNumber The movie number to fetch. (Typically starts from 1)
+     * @returns A Promise that resolves to the movie information or null if not found.
+     */
+    public async getMovie(
+        title: string,
+        movieNumber: number
+    ): Promise<Episode | null> {
+        return this.getEpisode(title, 0, movieNumber);
     }
 }

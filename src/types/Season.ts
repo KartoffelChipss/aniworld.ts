@@ -1,7 +1,7 @@
 import { Hoster } from './Hoster';
-import { Language } from './Language';
+import { EpisodeLanguage, Language } from './Language';
 
-export interface Episode {
+export interface SeasonEpisode {
     /** The episode number. */
     episodeNumber: number;
     /** The title of the episode. */
@@ -9,17 +9,12 @@ export interface Episode {
     /** The original title of the episode. */
     originalTitle: string | null;
     /** The available languages for the episode. */
-    languages: {
-        /** The audio language of the episode. */
-        audio: Language;
-        /** The subtitle language of the episode. */
-        subtitle: Language | null;
-    }[];
+    languages: EpisodeLanguage[];
     /** The available hosters for the episode. */
     hosters: Hoster[];
 }
 
-export type ExtractedSeason = Episode[];
+export type ExtractedSeason = SeasonEpisode[];
 
 export interface Season {
     /** The season number. */

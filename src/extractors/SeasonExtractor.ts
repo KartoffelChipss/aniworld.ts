@@ -1,6 +1,7 @@
 import { Hoster, isHoster, normalizeHoster } from '../types/Hoster';
-import { isLanguage } from '../types/Language';
-import { Episode, ExtractedSeason } from '../types/Season';
+import { EpisodeLanguage, isLanguage } from '../types/Language';
+import { SeasonEpisode, ExtractedSeason } from '../types/Season';
+import { parseFlagSrcToLanguages } from '../utils/flagLanguageParser';
 import { Extractor } from './Extractor';
 
 export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
@@ -13,7 +14,7 @@ export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
             return null;
         }
 
-        const episodes: Episode[] = $('table.seasonEpisodesList tbody tr')
+        const episodes: SeasonEpisode[] = $('table.seasonEpisodesList tbody tr')
             .map((_, el) => {
                 const node = $(el);
 
@@ -26,29 +27,24 @@ export class SeasonExtractor extends Extractor<ExtractedSeason | null> {
                 const originalTitle =
                     node.find('td:nth-child(2) a span').text().trim() || null;
 
-                const languages = node
+                const languages: EpisodeLanguage[] = node
                     .find('td:nth-child(4) img')
                     .map((_, langEl) => $(langEl).attr('src') || null)
                     .map((_, src) => {
-                        // /public/img/japanese-german.svg -> japanese audio & german subtitles
-                        // /public/img/german.svg -> german audio & no subtitles
                         if (src === null) return null;
-                        const parts = src.split('/');
-                        const filename = parts[parts.length - 1]; // "german.svg" or "japanese-german.svg"
-                        const nameWithoutExt = filename.replace(/\.[^.]+$/, ''); // remove .svg enging
-                        const [audioPart, subtitlePartRaw] =
-                            nameWithoutExt.split('-');
-                        const subtitlePart = subtitlePartRaw || null;
+                        const { audio, subtitle } =
+                            parseFlagSrcToLanguages(src);
+
                         if (
-                            !isLanguage(audioPart) ||
-                            (subtitlePart !== null && !isLanguage(subtitlePart))
+                            !isLanguage(audio) ||
+                            (subtitle !== null && !isLanguage(subtitle))
                         ) {
                             return null;
                         }
 
                         return {
-                            audio: audioPart,
-                            subtitle: subtitlePart,
+                            audio,
+                            subtitle,
                         };
                     })
                     .get();
