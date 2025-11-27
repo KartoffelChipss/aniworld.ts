@@ -16,6 +16,10 @@
         "type": "git",
         "url": "git+https://github.com/KartoffelChipss/aniworld.ts.git"
     },
+    "homepage": "https://github.com/KartoffelChipss/aniworld.ts#readme",
+    "bugs": {
+        "url": "https://github.com/KartoffelChipss/aniworld.ts/issues"
+    },
     "keywords": [
         "aniworld",
         "s.to",
