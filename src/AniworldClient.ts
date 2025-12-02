@@ -10,6 +10,8 @@ import { EpisodeExtractor } from './extractors/EpisodeExtractor';
 import { Episode } from './types/Episode';
 import NodeCache from 'node-cache';
 import { SearchResponse } from './types/Search';
+import { HomeDataExtractor } from './extractors/HomeDataExtractor';
+import { HomeData } from './types/HomeData';
 
 interface AniworldClientOptions {
     /** The base URL for the streaming service (e.g., "https://aniworld.to"). */
@@ -258,6 +260,28 @@ export class AniworldClient {
         movieNumber: number
     ): Promise<Episode | null> {
         return this.getEpisode(title, 0, movieNumber);
+    }
+
+    /**
+     * Fetches home page data including popular and new anime.
+     * @returns A Promise that resolves to the HomeData or null if not found.
+     */
+    public async getHomeData(): Promise<HomeData | null> {
+        const path = `/`;
+        const cheerioRoot = await this.getHtmlRoot(path);
+        if (cheerioRoot === null) {
+            this.debugLogger?.log(`No HTML at path: ${path}`);
+            return null;
+        }
+
+        const extractor = new HomeDataExtractor(
+            this.hostUrl,
+            async () => cheerioRoot,
+            this.debugLogger
+        );
+        const extracted = await extractor.extract();
+        if (extracted === null) return null;
+        return extracted;
     }
 
     /**
