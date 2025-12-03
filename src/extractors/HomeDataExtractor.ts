@@ -90,7 +90,13 @@ export class HomeDataExtractor extends Extractor<HomeData | null> {
             const genre = listA.find('small').first().text().trim() || null;
             const slug = href.split('/').filter(Boolean).pop() || '';
 
-            items.push({ slug, title, coverImage: fullImgSrc, genre });
+            items.push({
+                slug,
+                title,
+                coverImage: fullImgSrc,
+                cover: fullImgSrc,
+                genre,
+            });
         });
 
         return items;

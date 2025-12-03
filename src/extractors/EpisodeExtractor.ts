@@ -74,9 +74,11 @@ export class EpisodeExtractor extends Extractor<ExtractedEpisode | null> {
                 const lang = languages.find((l) => l.key === languageKey);
                 if (lang === undefined) return null;
 
+                const fullurl = new URL(url, this.getHostUrl()).toString();
+
                 return {
                     hoster: normalizedHoster,
-                    url,
+                    url: fullurl,
                     ...lang,
                 };
             })
